@@ -3,7 +3,7 @@
  * Plugin Name: Время работы организации
  * Plugin URI:  https://github.com/majbernhardt/work-time-plugin-wp
  * Description: Добавление динамического времени работы на сайт
- * Version:     2.0.0
+ * Version:     3.0.0
  * Author:      Maj Bernhardt
  * Author URI:  https://github.com/majbernhardt
  * License:     GNU General Public License v3
@@ -29,14 +29,31 @@
  *
  */
 
-function work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start = null, $weekday_break_end = null, $weekend_break_start = null, $weekend_break_end = null, $test_custom_time = null) {
+/**
+ * Пример использования функции
+ * echo $work_time();
+ */
+
+function work_time() {
+	$weekday_start_time = get_option('weekday_start_time');
+    $weekday_end_time = get_option('weekday_end_time');
+    $weekend_start_time = get_option('weekend_start_time');
+    $weekend_end_time = get_option('weekend_end_time');
+    $weekday_break_start = get_option('weekday_break_start');
+    $weekday_break_end = get_option('weekday_break_end');
+    $weekend_break_start = get_option('weekend_break_start');
+    $weekend_break_end = get_option('weekend_break_end');
+	$weekend_start = intval(get_option('weekend_start'));
+	$weekend_end = intval(get_option('weekend_end'));
+	$test_custom_time = get_option('test_custom_time');
+	
     if ($test_custom_time !== null) {
         date_default_timezone_set('UTC');
         $current_time = strtotime($test_custom_time);
     } else {
         $current_time = time();
     }
-
+	
     $current_day_of_week = intval(date('N', $current_time));
     $current_hour_with_minutes = date('H:i', $current_time);
 
@@ -81,30 +98,21 @@ function work_time($weekday_start_time, $weekday_end_time, $weekend_start, $week
         	return ($current_hour_with_minutes < $start_time) ? "Сегодня с $start_time" : "Завтра с $start_time";
 		}
     }
+    return $result; 
 }
 
+// Подключение файла с настройками
+include_once(plugin_dir_path(__FILE__) . 'work-time-settings.php');
 
-// Пример использования функции
-// $weekday_start_time = "11:30";      // Начало в будние дни
-// $weekday_end_time =  "18:30";       // Конец в будние дни
+// Добавление ссылок в список действий плагина
+function work_time_plugin_action_links($links) {
+    $settings_links = array(
+        '<a href="admin.php?page=work-time-settings">Настройки</a>',
+        '<a href="https://github.com/majbernhardt/work-time-plugin-wp#readme" target="_blank">Документация</a>',
+    );
+    $links = array_merge($settings_links, $links);
+    return $links;
+}
 
-// $weekend_start_time = "10:30";      // Начало в выходные дни
-// $weekend_end_time = "17:30";        // Конец в выходные дни
-
-// $weekday_break_start = "12:30";     // Начало перерыва в будние дни, null если перерыва нет
-// $weekday_break_end = "13:30";       // Конец перерыва в будние дни, null если перерыва нет
-
-// $weekend_break_start = null;        // Начало перерыва в выходные дни, null если перерыва нет
-// $weekend_break_end = null;          // Конец перерыва в выходные дни, null если перерыва нет
-
-// $weekend_start = 6;                 // День начала выходных (1 - понедельник, 7 - воскресенье)
-// $weekend_end = 7;                   // День конца выходных (1 - понедельник, 7 - воскресенье)
-
-// Пример использования без тестирования
-// $result = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end);
-// echo $result;
-
-// Пример использования с тестированием (произвольное время)
-// $test_custom_time = "2023-11-22 19:00:00";
-// $result_test = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end, $test_custom_time);
-// echo $result_test;
+// Регистрация хука для добавления ссылок
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'work_time_plugin_action_links');
