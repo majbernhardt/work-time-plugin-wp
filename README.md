@@ -7,36 +7,24 @@
 - upd [1.1.0]: Можно указывать перерывы для будних и выходных дней
 - upd [1.2.0]: Можно указать время с минутами
 - upd [2.0.0]: Включить тестирование для проверки выводимого времени можно в самом выводе функции
+- upd [3.0.0]: Вывод значений времени из админки
 
 # Пример использования функции
 ```sh
-$weekday_start_time = "11:30";      // Начало в будние дни
-$weekday_end_time =  "18:30";       // Конец в будние дни
-
-$weekend_start_time = "10:30";      // Начало в выходные дни
-$weekend_end_time = "17:30";        // Конец в выходные дни
-
-$weekday_break_start = "12:30";     // Начало перерыва в будние дни, null если перерыва нет
-$weekday_break_end = "13:30";       // Конец перерыва в будние дни, null если перерыва нет
-
-$weekend_break_start = null;        // Начало перерыва в выходные дни, null если перерыва нет
-$weekend_break_end = null;          // Конец перерыва в выходные дни, null если перерыва нет
-
-$weekend_start = 6;                 // День начала выходных (1 - понедельник, 7 - воскресенье)
-$weekend_end = 7;                   // День конца выходных (1 - понедельник, 7 - воскресенье)
-
-Пример использования без тестирования
-$result = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end);
-echo $result;
-
-Пример использования с тестированием (произвольное время)
-$test_custom_time = "2023-11-22 19:00:00";
-$result_test = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end, $test_custom_time);
-echo $result_test;
+echo $work_time();
 ```
 
 
 # История версий
+
+## [3.0.0] - 2023-11-22
+### Добавлено
+- В админку добавлена страница настроек времени
+- Добавлены ссылки в список действий плагина
+### Изменено
+- Вывод значений перенесён в админку
+- Время для тестирования вывода перенесено в админку
+- Дополнено описание в readme.md
 
 ## [2.0.0] - 2023-11-22
 ### Изменено
