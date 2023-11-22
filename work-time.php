@@ -3,7 +3,7 @@
  * Plugin Name: Время работы организации
  * Plugin URI:  https://github.com/majbernhardt/work-time-plugin-wp
  * Description: Добавление динамического времени работы на сайт
- * Version:     3.0.0
+ * Version:     3.0.1
  * Author:      Maj Bernhardt
  * Author URI:  https://github.com/majbernhardt
  * License:     GNU General Public License v3
