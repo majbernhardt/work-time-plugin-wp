@@ -6,25 +6,48 @@
 - Можно выбрать выходные дни
 - upd [1.1.0]: Можно указывать перерывы для будних и выходных дней
 - upd [1.2.0]: Можно указать время с минутами
+- upd [2.0.0]: Включить тестирование для проверки выводимого времени можно в самом выводе функции
 
 # Пример использования функции
 ```sh
-$time_start_work = "10:30";             // Начало в будние дни
-$time_end_work =  "18:30";              // Конец в будние дни
-$weekend_start = 6;                     // Суббота
-$weekend_end = 7;                       // Воскресенье
-$weekend_time_start_work = "09:30";     // Начало в выходные дни
-$weekend_time_end_work = "17:30";       // Конец в выходные дни
-$break_start_weekdays = "12:30";        // Начало перерыва в будние дни, null если перерыва нет
-$break_end_weekdays = "13:30";          // Конец перерыва в будние дни, null если перерыва нет
-$break_start_weekend = "14:30";         // Начало перерыва в выходные дни, null если перерыва нет
-$break_end_weekend = "15:30";           // Конец перерыва в выходные дни, null если перерыва нет
-$result = work_time($time_start_work, $time_end_work, $weekend_start, $weekend_end, $weekend_time_start_work, $weekend_time_end_work, $break_start_weekdays, $break_end_weekdays, $break_start_weekend, $break_end_weekend);
+$weekday_start_time = "11:30";      // Начало в будние дни
+$weekday_end_time =  "18:30";       // Конец в будние дни
+
+$weekend_start_time = "10:30";      // Начало в выходные дни
+$weekend_end_time = "17:30";        // Конец в выходные дни
+
+$weekday_break_start = "12:30";     // Начало перерыва в будние дни, null если перерыва нет
+$weekday_break_end = "13:30";       // Конец перерыва в будние дни, null если перерыва нет
+
+$weekend_break_start = null;        // Начало перерыва в выходные дни, null если перерыва нет
+$weekend_break_end = null;          // Конец перерыва в выходные дни, null если перерыва нет
+
+$weekend_start = 6;                 // День начала выходных (1 - понедельник, 7 - воскресенье)
+$weekend_end = 7;                   // День конца выходных (1 - понедельник, 7 - воскресенье)
+
+Пример использования без тестирования
+$result = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end);
 echo $result;
+
+Пример использования с тестированием (произвольное время)
+$test_custom_time = "2023-11-22 19:00:00";
+$result_test = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end, $test_custom_time);
+echo $result_test;
 ```
 
 
 # История версий
+
+## [2.0.0] - 2023-11-22
+### Изменено
+- Полностью переписана логика плагина
+- Дополнено описание в readme.md
+### Добавлено
+- Включить тестирование теперь можно в самом выводе функции
+- Добавлена документация к коду
+### Исправлено
+- Исправлена проблема, когда вечером перед выходным днём показывало неправильное время начала рабочего дня
+- Исправлена проблема отображения рабочего времени в выходные, когда их было более 2х, например с 5 по 7 день недели
 
 ## [1.2.0] - 2023-11-21
 ### Добавлено
