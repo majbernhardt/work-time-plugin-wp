@@ -184,7 +184,7 @@ function work_time_time_field_callback($args) {
     $field = $args['field'];
     $value = get_option($field, '');
     $description = isset($args['description']) ? esc_attr($args['description']) : '';
-    echo "<input type='time' name='$field' value='$value' required/>";
+    echo "<input type='time' name='$field' value='$value'/>";
     echo "<p class='description'>$description</p>";
 }
 
