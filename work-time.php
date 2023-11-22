@@ -1,75 +1,110 @@
 <?php
-/*
-* Plugin Name: Время работы организации
-* Plugin URI:  https://github.com/majbernhardt/work-time-plugin-wp
-* Description: Добавление динамического времени работы на сайт
-* Version:     1.2.0
-* Author:      Maj Bernhardt
-* Author URI:  https://github.com/majbernhardt
-* License:     GNU General Public License v3
-* License URI: https://github.com/majbernhardt/work-time-plugin-wp/blob/main/LICENSE
-*
-* Network:     true
+/**
+ * Plugin Name: Время работы организации
+ * Plugin URI:  https://github.com/majbernhardt/work-time-plugin-wp
+ * Description: Добавление динамического времени работы на сайт
+ * Version:     2.0.0
+ * Author:      Maj Bernhardt
+ * Author URI:  https://github.com/majbernhardt
+ * License:     GNU General Public License v3
+ * License URI: https://github.com/majbernhardt/work-time-plugin-wp/blob/main/LICENSE
+ *
+ * Network:     true
 */
-function work_time($time_start_work, $time_end_work, $weekend_start, $weekend_end, $weekend_time_start_work, $weekend_time_end_work, $break_start_weekdays = null, $break_end_weekdays = null, $break_start_weekend = null, $break_end_weekend = null) {
-    /*
-    // Раскомментировать, чтобы протестировать
-    date_default_timezone_set('UTC'); // Устанавливаем временную зону по желанию
-    $custom_time = strtotime('2023-11-04 13:00:00'); // Задаем произвольную дату и время для тестирования (например, 5:00 утра) 
-    $current_time = $custom_time; // Устанавливаем кастомное время вместо текущего
-    */
-    
-	$current_time = time(); // Получаем текущее время в формате Unix timestamp (Закомментировать, чтобы протестировать)
 
-    // Проверка, является ли текущий день выходным (субботой или воскресеньем)
-    $is_weekend = in_array(date('N', $current_time), [6, 7]);
+/**
+ * Функция для определения текущего статуса работы организации в зависимости от времени и дней недели.
+ *
+ * @param string $weekday_start_time Время начала работы в будние дни в формате ЧЧ:ММ.
+ * @param string $weekday_end_time Время окончания работы в будние дни в формате ЧЧ:ММ.
+ * @param int $weekend_start Номер дня недели, с которого начинается выходной (1 - понедельник, 7 - воскресенье).
+ * @param int $weekend_end Номер дня недели, которым заканчивается выходной (1 - понедельник, 7 - воскресенье).
+ * @param string $weekend_start_time Время начала работы в выходные дни в формате ЧЧ:ММ.
+ * @param string $weekend_end_time Время окончания работы в выходные дни в формате ЧЧ:ММ.
+ * @param string|null $weekday_break_start Начальное время перерыва в будние дни, null если перерыва нет.
+ * @param string|null $weekday_break_end Конечное время перерыва в будние дни, null если перерыва нет.
+ * @param string|null $weekend_break_start Начальное время перерыва в выходные дни, null если перерыва нет.
+ * @param string|null $weekend_break_end Конечное время перерыва в выходные дни, null если перерыва нет.
+ * @param string|null $test_custom_time Произвольное время для тестирования в формате 'Y-m-d H:i:s', null для использования текущего времени.
+ *
+ */
 
-    // Вычисляем час текущего времени с учетом минут
+function work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start = null, $weekday_break_end = null, $weekend_break_start = null, $weekend_break_end = null, $test_custom_time = null) {
+    if ($test_custom_time !== null) {
+        date_default_timezone_set('UTC');
+        $current_time = strtotime($test_custom_time);
+    } else {
+        $current_time = time();
+    }
+
+    $current_day_of_week = intval(date('N', $current_time));
     $current_hour_with_minutes = date('H:i', $current_time);
 
-    // Преобразование времени перерыва в выходные в формат ЧЧ:ММ
-    $break_start_weekend_formatted = ($break_start_weekend !== null) ? $break_start_weekend : null;
-    $break_end_weekend_formatted = ($break_end_weekend !== null) ? $break_end_weekend : null;
+    $break_start_formatted = null;
+    $break_end_formatted = null;
 
-    // Преобразование времени перерыва в будние дни в формат ЧЧ:ММ
-    $break_start_weekdays_formatted = ($break_start_weekdays !== null) ? $break_start_weekdays : null;
-    $break_end_weekdays_formatted = ($break_end_weekdays !== null) ? $break_end_weekdays : null;
+    if ($current_day_of_week >= $weekend_start && $current_day_of_week <= $weekend_end) {
+        // Если текущий день находится между $weekend_start и $weekend_end, то это выходной
+        $start_time = $weekend_start_time;
+        $end_time = $weekend_end_time;
+        $break_start_formatted = $weekend_break_start;
+        $break_end_formatted = $weekend_break_end;
+    } else {
+        // Иначе это будний день
+        $start_time = $weekday_start_time;
+        $end_time = $weekday_end_time;
+        $break_start_formatted = $weekday_break_start;
+        $break_end_formatted = $weekday_break_end;
+    }
 
-    if ($is_weekend) {
-        // Если сегодня выходной
-        if ($current_hour_with_minutes >= $weekend_time_start_work && $current_hour_with_minutes < $weekend_time_end_work) {
-            if ($break_start_weekend_formatted !== null && $break_end_weekend_formatted !== null && $current_hour_with_minutes >= $break_start_weekend_formatted && $current_hour_with_minutes < $break_end_weekend_formatted) {
-                return "Перерыв до $break_end_weekend";
-            } else {
-                return "Сегодня до $weekend_time_end_work";
-            }
+    if ($current_hour_with_minutes >= $start_time && $current_hour_with_minutes < $end_time) {
+        if ($break_start_formatted !== null && $break_end_formatted !== null && $current_hour_with_minutes >= $break_start_formatted && $current_hour_with_minutes < $break_end_formatted) {
+            return "Перерыв до $break_end_formatted";
         } else {
-            return ($current_hour_with_minutes < $weekend_time_start_work) ? "Сегодня с $weekend_time_start_work" : "Завтра с $weekend_time_start_work";
+            return "Сегодня до $end_time";
         }
     } else {
-        // Если сегодня рабочий день
-        if ($current_hour_with_minutes >= $time_start_work && $current_hour_with_minutes < $time_end_work) {
-            if ($break_start_weekdays_formatted !== null && $break_end_weekdays_formatted !== null && $current_hour_with_minutes >= $break_start_weekdays_formatted && $current_hour_with_minutes < $break_end_weekdays_formatted) {
-                return "Перерыв до $break_end_weekdays";
-            } else {
-                return "Сегодня до $time_end_work";
-            }
-        } else {
-            return ($current_hour_with_minutes < $time_start_work) ? "Сегодня с $time_start_work" : "Завтра с $time_start_work";
-        }
+		if ( intval(date('N', $current_time)) === $weekend_start ) {
+			// Если начало выходных
+        	return ($current_hour_with_minutes < $start_time) ? "Сегодня с $start_time" : "Завтра с $start_time";
+		} else if (intval(date('N', $current_time)) > $weekend_start && intval(date('N', $current_time)) < $weekend_end) {
+			// Если выходные не подряд
+			return ($current_hour_with_minutes < $start_time) ? "Сегодня с $start_time" : "Завтра с $weekend_start_time";
+		} else if ( intval(date('N', $current_time)) === $weekend_end ) {
+			// Если конец выходных
+        	return ($current_hour_with_minutes < $start_time) ? "Сегодня с $start_time" : "Завтра с $weekday_start_time";
+		} else if ( intval(date('N', $current_time)) === ($weekend_start - 1)) {
+			// Если один день до выходных
+        	return ($current_hour_with_minutes < $start_time) ? "Сегодня с $start_time" : "Завтра с $weekend_start_time";
+		} else {
+			// Если будние дни
+        	return ($current_hour_with_minutes < $start_time) ? "Сегодня с $start_time" : "Завтра с $start_time";
+		}
     }
 }
 
+
 // Пример использования функции
-# $time_start_work = "10:30";
-# $time_end_work =  "18:30";
-# $weekend_start = 6; // Суббота
-# $weekend_end = 7;   // Воскресенье
-# $weekend_time_start_work = "10:30";
-# $weekend_time_end_work = "15:30";
-# $break_start_weekdays = null; // Начало перерыва в будние дни, null если перерыва нет
-# $break_end_weekdays = null;   // Конец перерыва в будние дни, null если перерыва нет
-# $break_start_weekend = "12:30";  // Начало перерыва в выходные дни, null если перерыва нет
-# $break_end_weekend = "13:30";    // Конец перерыва в выходные дни, null если перерыва нет
-# $result = work_time($time_start_work, $time_end_work, $weekend_start, $weekend_end, $weekend_time_start_work, $weekend_time_end_work, $break_start_weekdays, $break_end_weekdays, $break_start_weekend, # $break_end_weekend);
-# echo $result;
+// $weekday_start_time = "11:30";      // Начало в будние дни
+// $weekday_end_time =  "18:30";       // Конец в будние дни
+
+// $weekend_start_time = "10:30";      // Начало в выходные дни
+// $weekend_end_time = "17:30";        // Конец в выходные дни
+
+// $weekday_break_start = "12:30";     // Начало перерыва в будние дни, null если перерыва нет
+// $weekday_break_end = "13:30";       // Конец перерыва в будние дни, null если перерыва нет
+
+// $weekend_break_start = null;        // Начало перерыва в выходные дни, null если перерыва нет
+// $weekend_break_end = null;          // Конец перерыва в выходные дни, null если перерыва нет
+
+// $weekend_start = 6;                 // День начала выходных (1 - понедельник, 7 - воскресенье)
+// $weekend_end = 7;                   // День конца выходных (1 - понедельник, 7 - воскресенье)
+
+// Пример использования без тестирования
+// $result = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end);
+// echo $result;
+
+// Пример использования с тестированием (произвольное время)
+// $test_custom_time = "2023-11-22 19:00:00";
+// $result_test = work_time($weekday_start_time, $weekday_end_time, $weekend_start, $weekend_end, $weekend_start_time, $weekend_end_time, $weekday_break_start, $weekday_break_end, $weekend_break_start, $weekend_break_end, $test_custom_time);
+// echo $result_test;
